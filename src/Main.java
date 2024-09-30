@@ -9,39 +9,42 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         int rangeStart = 1;
-        int rangeEnd = 100000; // Adjust range to a larger number to observe performance impact
-        int[] numProportionsList = {1, 2, 4, 8, 16}; // Different numbers of parallel tasks (ratios)
+        int rangeEnd = 100000; // A larger range to analyze performance effectively
+        int numProportions = 4; // Fixed number of parallel tasks (threads)
 
-        // Run the prime finding with different numbers of proportions and print stats
-        for (int numProportions : numProportionsList) {
+        // Define various domain sizes to test
+        int[] domainSizes = {100, 1000, 5000, 10000, 20000};
+
+        // Test different domain sizes
+        for (int domainSize : domainSizes) {
             long startTime = System.nanoTime(); // Start timing
-            List<Integer> primes = findPrimesInRangeParallel(rangeStart, rangeEnd, numProportions);
+            List<Integer> primes = findPrimesWithDomainSize(rangeStart, rangeEnd, numProportions, domainSize);
             long endTime = System.nanoTime(); // End timing
 
             // Calculate execution time in milliseconds
             long executionTime = (endTime - startTime) / 1_000_000;
 
             // Print results and statistics
-            System.out.println("Number of Proportions: " + numProportions);
+            System.out.println("Domain Size: " + domainSize);
             System.out.println("Execution Time: " + executionTime + " ms");
             System.out.println("Number of Primes Found: " + primes.size());
             System.out.println("--------------------------------------------");
         }
     }
 
-    // Method to find prime numbers using parallel processing
-    public static List<Integer> findPrimesInRangeParallel(int rangeStart, int rangeEnd, int numProportions) throws Exception {
+    // Method to find prime numbers with a fixed domain size for each task
+    public static List<Integer> findPrimesWithDomainSize(int rangeStart, int rangeEnd, int numProportions, int domainSize) throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(numProportions); // Create a thread pool
         List<Callable<List<Integer>>> tasks = new ArrayList<>(); // List to hold the tasks
 
-        // Calculate the size of each subrange
-        int rangeSize = (rangeEnd - rangeStart + 1) / numProportions;
+        // Create tasks based on the domain size
+        int currentStart = rangeStart;
 
-        // Create tasks to search for primes in each subrange
-        for (int i = 0; i < numProportions; i++) {
-            int subrangeStart = rangeStart + i * rangeSize;
-            int subrangeEnd = (i == numProportions - 1) ? rangeEnd : subrangeStart + rangeSize - 1;
-            tasks.add(new PrimeFinderTask(subrangeStart, subrangeEnd)); // Add task to the list
+        // Keep creating tasks until the entire range is covered
+        while (currentStart <= rangeEnd) {
+            int currentEnd = Math.min(currentStart + domainSize - 1, rangeEnd);
+            tasks.add(new PrimeFinderTask(currentStart, currentEnd)); // Add task to the list
+            currentStart = currentEnd + 1; // Move to the next subrange
         }
 
         // Execute all tasks and collect the results
@@ -99,4 +102,3 @@ class PrimeFinderTask implements Callable<List<Integer>>, PrimeFinder {
         return true;
     }
 }
-
