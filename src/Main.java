@@ -9,42 +9,45 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         int rangeStart = 1;
-        int rangeEnd = 100000; // A larger range to analyze performance effectively
-        int numProportions = 4; // Fixed number of parallel tasks (threads)
+        int rangeEnd = 100000; // Large range to analyze performance effectively
 
-        // Define various domain sizes to test
-        int[] domainSizes = {100, 1000, 5000, 10000, 20000};
+        // Get the number of available processors (cores)
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        System.out.println("Available Processors: " + availableProcessors);
 
-        // Test different domain sizes
-        for (int domainSize : domainSizes) {
+        // Vary the number of threads to test the effect on performance (from 1 to number of cores)
+        int[] numThreadsList = {1, 2, availableProcessors, availableProcessors * 2};
+
+        // Test with different thread counts and observe performance
+        for (int numThreads : numThreadsList) {
             long startTime = System.nanoTime(); // Start timing
-            List<Integer> primes = findPrimesWithDomainSize(rangeStart, rangeEnd, numProportions, domainSize);
+            List<Integer> primes = findPrimesInRangeParallel(rangeStart, rangeEnd, numThreads);
             long endTime = System.nanoTime(); // End timing
 
             // Calculate execution time in milliseconds
             long executionTime = (endTime - startTime) / 1_000_000;
 
             // Print results and statistics
-            System.out.println("Domain Size: " + domainSize);
+            System.out.println("Number of Threads: " + numThreads);
             System.out.println("Execution Time: " + executionTime + " ms");
             System.out.println("Number of Primes Found: " + primes.size());
             System.out.println("--------------------------------------------");
         }
     }
 
-    // Method to find prime numbers with a fixed domain size for each task
-    public static List<Integer> findPrimesWithDomainSize(int rangeStart, int rangeEnd, int numProportions, int domainSize) throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(numProportions); // Create a thread pool
+    // Method to find prime numbers using parallel processing
+    public static List<Integer> findPrimesInRangeParallel(int rangeStart, int rangeEnd, int numThreads) throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads); // Create a thread pool
         List<Callable<List<Integer>>> tasks = new ArrayList<>(); // List to hold the tasks
 
-        // Create tasks based on the domain size
-        int currentStart = rangeStart;
+        // Calculate the size of each subrange based on the number of threads
+        int rangeSize = (rangeEnd - rangeStart + 1) / numThreads;
 
-        // Keep creating tasks until the entire range is covered
-        while (currentStart <= rangeEnd) {
-            int currentEnd = Math.min(currentStart + domainSize - 1, rangeEnd);
-            tasks.add(new PrimeFinderTask(currentStart, currentEnd)); // Add task to the list
-            currentStart = currentEnd + 1; // Move to the next subrange
+        // Create tasks to search for primes in each subrange
+        for (int i = 0; i < numThreads; i++) {
+            int subrangeStart = rangeStart + i * rangeSize;
+            int subrangeEnd = (i == numThreads - 1) ? rangeEnd : subrangeStart + rangeSize - 1;
+            tasks.add(new PrimeFinderTask(subrangeStart, subrangeEnd)); // Add task to the list
         }
 
         // Execute all tasks and collect the results
@@ -60,3 +63,8 @@ public class Main {
         return allPrimes; // Return the list of all prime numbers found
     }
 }
+
+
+
+
+
