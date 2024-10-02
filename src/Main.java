@@ -1,53 +1,74 @@
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.time.LocalDateTime;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
         int rangeStart = 1;
-        int rangeEnd = 100000; // Large range to analyze performance effectively
+        int rangeEnd = 100000; // Range to search for primes
+        int numThreads = 4;    // Best number of threads
+        int numProportions = 2; // Best number of proportions (logical proportions of the task)
+        int domainSize = 20000; // Best domain size per task
 
-        // Get the number of available processors (cores)
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
-        System.out.println("Available Processors: " + availableProcessors);
+        System.out.println("Testing with the following configuration:");
+        System.out.println("Number of Threads: " + numThreads);
+        System.out.println("Number of Proportions: " + numProportions);
+        System.out.println("Domain Size: " + domainSize);
+        System.out.println("--------------------------------------------");
 
-        // Vary the number of threads to test the effect on performance (from 1 to number of cores)
-        int[] numThreadsList = {1, 2, availableProcessors, availableProcessors * 2};
+        // Collect initial memory usage and start time
+        long initialMemory = getMemoryUsage();
+        long startTime = System.nanoTime(); // Start time for execution
 
-        // Test with different thread counts and observe performance
-        for (int numThreads : numThreadsList) {
-            long startTime = System.nanoTime(); // Start timing
-            List<Integer> primes = findPrimesInRangeParallel(rangeStart, rangeEnd, numThreads);
-            long endTime = System.nanoTime(); // End timing
+        // Find prime numbers with the selected configuration
+        List<Integer> primes = findPrimesInRangeParallel(rangeStart, rangeEnd, numThreads, domainSize);
 
-            // Calculate execution time in milliseconds
-            long executionTime = (endTime - startTime) / 1_000_000;
+        // Collect end time and memory usage
+        long endTime = System.nanoTime();
+        long finalMemory = getMemoryUsage();
+        long executionTime = (endTime - startTime) / 1_000_000; // Convert nanoseconds to milliseconds
 
-            // Print results and statistics
-            System.out.println("Number of Threads: " + numThreads);
-            System.out.println("Execution Time: " + executionTime + " ms");
-            System.out.println("Number of Primes Found: " + primes.size());
-            System.out.println("--------------------------------------------");
-        }
+        // Memory consumption details
+        long memoryUsed = finalMemory - initialMemory;
+
+        // Print detailed statistics
+        System.out.println("Execution Details:");
+        System.out.println("Start Time: " + LocalDateTime.now());
+        System.out.println("Execution Time: " + executionTime + " ms");
+        System.out.println("Initial Memory Usage: " + initialMemory + " bytes");
+        System.out.println("Final Memory Usage: " + finalMemory + " bytes");
+        System.out.println("Memory Used: " + memoryUsed + " bytes");
+        System.out.println("Number of Primes Found: " + primes.size());
+        System.out.println("--------------------------------------------");
+    }
+    // Method to get the current memory usage (Heap memory)
+    public static long getMemoryUsage() {
+        MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+        MemoryUsage heapUsage = memoryBean.getHeapMemoryUsage();
+        return heapUsage.getUsed();
     }
 
-    // Method to find prime numbers using parallel processing
-    public static List<Integer> findPrimesInRangeParallel(int rangeStart, int rangeEnd, int numThreads) throws Exception {
+    // Method to find prime numbers using parallel processing with fixed domain size
+    public static List<Integer> findPrimesInRangeParallel(int rangeStart, int rangeEnd, int numThreads, int domainSize) throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(numThreads); // Create a thread pool
         List<Callable<List<Integer>>> tasks = new ArrayList<>(); // List to hold the tasks
 
-        // Calculate the size of each subrange based on the number of threads
-        int rangeSize = (rangeEnd - rangeStart + 1) / numThreads;
+        // Create tasks based on the domain size
+        int currentStart = rangeStart;
 
-        // Create tasks to search for primes in each subrange
-        for (int i = 0; i < numThreads; i++) {
-            int subrangeStart = rangeStart + i * rangeSize;
-            int subrangeEnd = (i == numThreads - 1) ? rangeEnd : subrangeStart + rangeSize - 1;
-            tasks.add(new PrimeFinderTask(subrangeStart, subrangeEnd)); // Add task to the list
+        // Keep creating tasks until the entire range is covered
+        while (currentStart <= rangeEnd) {
+            int currentEnd = Math.min(currentStart + domainSize - 1, rangeEnd);
+            tasks.add(new PrimeFinderTask(currentStart, currentEnd)); // Add task to the list
+            currentStart = currentEnd + 1; // Move to the next subrange
         }
 
         // Execute all tasks and collect the results
