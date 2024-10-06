@@ -35,4 +35,21 @@ public class PrimeFinderTest extends TestCase {
         assertEquals(List.of(2, 3, 5, 7), primes); // Assert that the primes list is as expected
     }
 
+    // Test method for a range with no primes
+    public void testFindPrimesInRangeWithNoPrimes() {
+        PrimeFinderTask primeFinderTask = new PrimeFinderTask(14, 16);
+        List<Integer> primes = primeFinderTask.findPrimesInRange(14, 16);
+
+        assertNotNull(primes); // Assert that the list is not null
+        assertTrue(primes.isEmpty()); // Assert that the list is empty
+    }
+
+    // Test method for a single prime number
+    public void testFindPrimesInRangeWithSinglePrime() {
+        PrimeFinderTask primeFinderTask = new PrimeFinderTask(29, 29);
+        List<Integer> primes = primeFinderTask.findPrimesInRange(29, 29);
+
+        assertNotNull(primes); // Assert that the list is not null
+        assertEquals(List.of(29), primes); // Assert that the list contains only 29
+    }
 }
