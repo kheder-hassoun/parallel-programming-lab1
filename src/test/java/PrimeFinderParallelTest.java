@@ -30,6 +30,12 @@ public class PrimeFinderParallelTest extends TestCase {
     }
 
 
+    // Test for a larger domain size
+    public void testFindPrimesInRangeParallelWithLargerDomain() throws Exception {
+        List<Integer> primes = Main.findPrimesInRangeParallel(1, 50, 3, 20); // Use 3 threads, domain size 20
 
+        assertNotNull(primes); // Check that the result is not null
+        assertEquals(List.of(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47), primes); // Check for correct primes
+    }
 
 }
