@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 // Class that implements the PrimeFinder interface to find primes in a specific range
-class PrimeFinderTask implements Callable<List<Integer>>, PrimeFinder {
+public class PrimeFinderTask implements Callable<List<Integer>>, PrimeFinder {
     private final int start;
     private final int end;
 
