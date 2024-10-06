@@ -1,3 +1,5 @@
+package me.multithreading;
+
 import java.util.List;
 
 interface PrimeFinder {
