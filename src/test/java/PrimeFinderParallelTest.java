@@ -21,4 +21,15 @@ public class PrimeFinderParallelTest extends TestCase {
         assertEquals(List.of(11, 13, 17, 19, 23, 29), primes); // Check that the result contains the correct prime numbers
     }
 
+    // Test the parallel prime finding for a range with no primes
+    public void testFindPrimesInRangeParallelWithNoPrimes() throws Exception {
+        List<Integer> primes = Main.findPrimesInRangeParallel(14, 16, 2, 2); // Use 2 threads, domain size 2
+
+        assertNotNull(primes); // Check that the result is not null
+        assertTrue(primes.isEmpty()); // Check that the result is empty
+    }
+
+
+
+
 }
