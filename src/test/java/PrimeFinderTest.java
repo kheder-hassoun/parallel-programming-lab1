@@ -3,6 +3,7 @@ import junit.framework.TestCase;
 import me.multithreading.PrimeFinderTask;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 
 public class PrimeFinderTest extends TestCase {
@@ -23,6 +24,15 @@ public class PrimeFinderTest extends TestCase {
 
         assertNotNull(primes); // Assert that the list is not null
         assertEquals(List.of(11, 13, 17, 19, 23, 29), primes); // Assert that the primes list is as expected
+    }
+
+    // Test method for the call method
+    public void testCallMethod() throws ExecutionException, InterruptedException {
+        PrimeFinderTask primeFinderTask = new PrimeFinderTask(1, 10);
+        List<Integer> primes = primeFinderTask.call(); // Use the call method
+
+        assertNotNull(primes); // Assert that the list is not null
+        assertEquals(List.of(2, 3, 5, 7), primes); // Assert that the primes list is as expected
     }
 
 }
