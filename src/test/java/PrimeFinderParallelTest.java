@@ -29,6 +29,13 @@ public class PrimeFinderParallelTest extends TestCase {
         assertTrue(primes.isEmpty()); // Check that the result is empty
     }
 
+    // Test the parallel prime finding for a single prime number in the range
+    public void testFindPrimesInRangeParallelWithSinglePrime() throws Exception {
+        List<Integer> primes = Main.findPrimesInRangeParallel(29, 29, 1, 1); // Use 1 thread, domain size 1
+
+        assertNotNull(primes); // Check that the result is not null
+        assertEquals(List.of(29), primes); // Check that the result contains the single prime number
+    }
 
     // Test for a larger domain size
     public void testFindPrimesInRangeParallelWithLargerDomain() throws Exception {
@@ -37,5 +44,4 @@ public class PrimeFinderParallelTest extends TestCase {
         assertNotNull(primes); // Check that the result is not null
         assertEquals(List.of(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47), primes); // Check for correct primes
     }
-
 }
