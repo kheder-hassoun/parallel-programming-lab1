@@ -6,26 +6,36 @@ import java.util.List;
 
 public class ImageProcessor {
 
-    public static void recolorMultithreaded(BufferedImage originalImage, BufferedImage resultImage, int numberOfThreads) {
+    public static void recolorMultithreadedBlocks(BufferedImage originalImage, BufferedImage resultImage, int numberOfThreads) {
         List<Thread> threads = new ArrayList<>();
+
         int width = originalImage.getWidth();
-        int height = originalImage.getHeight() / numberOfThreads;
+        int height = originalImage.getHeight();
 
-        for (int i = 0; i < numberOfThreads; i++) {
-            final int threadMultiplier = i;
+        int blockSize = (int) Math.sqrt(numberOfThreads); // Split image into blockSize x blockSize regions
 
-            Thread thread = new Thread(() -> {
-                int xOrigin = 0;
-                int yOrigin = height * threadMultiplier;
-                recolorImage(originalImage, resultImage, xOrigin, yOrigin, width, height);
-            });
-            threads.add(thread);
+        int blockWidth = width / blockSize;
+        int blockHeight = height / blockSize;
+
+        for (int i = 0; i < blockSize; i++) {
+            for (int j = 0; j < blockSize; j++) {
+                final int xOrigin = blockWidth * i;
+                final int yOrigin = blockHeight * j;
+
+                Thread thread = new Thread(() -> {
+                    recolorImage(originalImage, resultImage, xOrigin, yOrigin, blockWidth, blockHeight);
+                });
+
+                threads.add(thread);
+            }
         }
 
+        // Start all threads
         for (Thread thread : threads) {
             thread.start();
         }
 
+        // Wait for all threads to complete
         for (Thread thread : threads) {
             try {
                 thread.join();
@@ -33,10 +43,6 @@ public class ImageProcessor {
                 e.printStackTrace();
             }
         }
-    }
-
-    public static void recolorSingleThreaded(BufferedImage originalImage, BufferedImage resultImage) {
-        recolorImage(originalImage, resultImage, 0, 0, originalImage.getWidth(), originalImage.getHeight());
     }
 
     public static void recolorImage(BufferedImage originalImage, BufferedImage resultImage, int leftCorner, int topCorner, int width, int height) {

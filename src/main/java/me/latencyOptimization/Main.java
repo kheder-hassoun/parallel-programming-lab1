@@ -13,14 +13,27 @@ public class Main {
         BufferedImage originalImage = ImageIO.read(new File(SOURCE_FILE));
         BufferedImage resultImage = new BufferedImage(originalImage.getWidth(), originalImage.getHeight(), BufferedImage.TYPE_INT_RGB);
 
-        long startTime = System.currentTimeMillis();
-        ImageProcessor.recolorMultithreaded(originalImage, resultImage, 4);
-        long endTime = System.currentTimeMillis();
+        // Get memory info before processing
+        Runtime runtime = Runtime.getRuntime();
+        long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
 
+        long startTime = System.currentTimeMillis();
+
+        // Perform multi-threaded recoloring by dividing into blocks
+        int numberOfThreads = 4;
+        ImageProcessor.recolorMultithreadedBlocks(originalImage, resultImage, numberOfThreads);
+
+        long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
-        System.out.println("Processing took " + duration + "ms");
+
+        // Get memory info after processing
+        long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
 
         File outputFile = new File(DESTINATION_FILE);
         ImageIO.write(resultImage, "jpg", outputFile);
+
+        // Print statistics
+        System.out.println("Time taken: " + duration + " ms");
+        System.out.println("Memory used: " + (memoryAfter - memoryBefore) / 1024 + " KB");
     }
 }
